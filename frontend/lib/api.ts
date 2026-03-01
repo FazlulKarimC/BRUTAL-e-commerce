@@ -48,8 +48,13 @@ api.interceptors.response.use(
         // Initialize retry count
         config._retryCount = config._retryCount || 0;
 
+        // Only retry idempotent methods — never retry POST/PUT/PATCH/DELETE
+        // to prevent duplicate order/checkout mutations
+        const method = (config.method || 'get').toLowerCase();
+        const isIdempotent = ['get', 'head', 'options'].includes(method);
+
         // Retry if it's a cold start error and we haven't exceeded max retries
-        if (isColdStartError && config._retryCount < MAX_COLD_START_RETRIES) {
+        if (isColdStartError && isIdempotent && config._retryCount < MAX_COLD_START_RETRIES) {
             config._retryCount += 1;
 
             console.log(`[API] Server may be waking up. Retrying in ${COLD_START_RETRY_DELAY / 1000}s... (attempt ${config._retryCount}/${MAX_COLD_START_RETRIES})`);

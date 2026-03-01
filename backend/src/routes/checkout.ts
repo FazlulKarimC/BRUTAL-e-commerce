@@ -27,7 +27,14 @@ router.post(
                 return;
             }
 
-            const result = await orderService.applyDiscount(req.body.code, cart.subtotal);
+            // Resolve Customer ID from User ID
+            let resolvedCustomerId: string | undefined;
+            if (customerId) {
+                const customer = await prisma.customer.findUnique({ where: { userId: customerId } });
+                if (customer) resolvedCustomerId = customer.id;
+            }
+
+            const result = await orderService.applyDiscount(req.body.code, cart.subtotal, resolvedCustomerId);
 
             res.json({
                 valid: true,
@@ -116,12 +123,19 @@ router.post(
                 return;
             }
 
+            // Resolve Customer ID from User ID
+            let resolvedCustomerId: string | undefined;
+            if (customerId) {
+                const customer = await prisma.customer.findUnique({ where: { userId: customerId } });
+                if (customer) resolvedCustomerId = customer.id;
+            }
+
             let discount = 0;
             let discountType = null;
 
             if (req.body.discountCode) {
                 try {
-                    const discountResult = await orderService.applyDiscount(req.body.discountCode, cart.subtotal);
+                    const discountResult = await orderService.applyDiscount(req.body.discountCode, cart.subtotal, resolvedCustomerId);
                     discount = discountResult.discount;
                     discountType = discountResult.type;
                 } catch {
@@ -139,7 +153,9 @@ router.post(
                 ? parseFloat(settings.freeShippingThreshold.toString())
                 : null;
 
-            const finalShipping = (freeShippingThreshold && cart.subtotal >= freeShippingThreshold) ? 0 : shippingCost;
+            const hasFreeShippingDiscount = discountType === 'FREE_SHIPPING';
+            const meetsFreeShippingThreshold = freeShippingThreshold !== null && cart.subtotal >= freeShippingThreshold;
+            const finalShipping = (hasFreeShippingDiscount || meetsFreeShippingThreshold) ? 0 : shippingCost;
 
             const taxRate = settings?.defaultTaxRate ? parseFloat(settings.defaultTaxRate.toString()) : 0;
             const tax = (cart.subtotal - discount) * (taxRate / 100);

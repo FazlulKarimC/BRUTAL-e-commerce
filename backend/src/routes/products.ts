@@ -53,13 +53,18 @@ router.get(
   }
 );
 
-// Get product by ID (public)
+// Get product by ID (public - only ACTIVE products visible)
 router.get(
   '/:id',
   validateParams(productIdSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const product = await productService.findById(req.params.id);
+      // Harden: only show ACTIVE products publicly
+      if (product.status !== 'ACTIVE') {
+        res.status(404).json({ error: 'Product not found' });
+        return;
+      }
       res.json(product);
     } catch (error) {
       if (error instanceof Error && error.message === 'Product not found') {

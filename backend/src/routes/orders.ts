@@ -19,8 +19,8 @@ const router = Router();
 
 // ==================== CUSTOMER ROUTES ====================
 
-// Get order by order number (public - for thank you page)
-// Returns minimal info for unauthenticated users, full details for owner/staff
+// Get order by order number (public - for thank you page / order tracking)
+// Guests must supply ?email= matching the order email to get full details
 router.get(
   '/number/:orderNumber',
   optionalAuth,
@@ -29,20 +29,19 @@ router.get(
       const order = await orderService.findByOrderNumber(req.params.orderNumber);
 
       // Check if user is owner or staff
-      // order.customerId is the Customer table ID, not the User ID
-      // We need to check if the order's customer belongs to this user
       const isOwner = req.user && order.customer?.userId === req.user.userId;
       const isStaff = req.user?.role === 'ADMIN' || req.user?.role === 'STAFF';
 
       if (!isOwner && !isStaff) {
-        // Return minimal info for unauthenticated/unauthorized access
-        // Prevents exposing PII to anyone who guesses order numbers
-        res.json({
-          orderNumber: order.orderNumber,
-          status: order.status,
-          createdAt: order.createdAt,
-        });
-        return;
+        // Guest access: require email to match in order to reveal full details
+        const providedEmail = (req.query.email as string | undefined)?.trim().toLowerCase();
+        const orderEmail = order.email?.toLowerCase();
+
+        if (!providedEmail || providedEmail !== orderEmail) {
+          // Return 404 rather than minimal info — prevents enumeration attacks
+          res.status(404).json({ error: 'Order not found' });
+          return;
+        }
       }
 
       res.json(order);

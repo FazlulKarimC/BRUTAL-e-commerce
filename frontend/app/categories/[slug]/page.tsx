@@ -22,6 +22,9 @@ function CategoryDetailContent() {
 
     const [sortBy, setSortBy] = useState('createdAt-desc');
     const [page, setPage] = useState(1);
+    const [showFilters, setShowFilters] = useState(false);
+    const [minPrice, setMinPrice] = useState('');
+    const [maxPrice, setMaxPrice] = useState('');
 
     const [sortField, sortOrder] = sortBy.split('-') as ['title' | 'price' | 'createdAt', 'asc' | 'desc'];
 
@@ -32,6 +35,8 @@ function CategoryDetailContent() {
         category: slug,
         sort: sortField,
         order: sortOrder,
+        ...(minPrice ? { minPrice: parseFloat(minPrice) } : {}),
+        ...(maxPrice ? { maxPrice: parseFloat(maxPrice) } : {}),
     });
 
     const products = productsData?.products || [];
@@ -192,12 +197,63 @@ function CategoryDetailContent() {
                                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" />
                             </div>
 
-                            <button className="flex items-center gap-2 bg-[#FACC15] border-4 border-black rounded-xl px-4 py-3 font-bold text-sm shadow-[4px_4px_0px_0px_#000] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all">
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
+                                className={cn(
+                                    "flex items-center gap-2 border-4 border-black rounded-xl px-4 py-3 font-bold text-sm shadow-[4px_4px_0px_0px_#000] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all",
+                                    showFilters ? "bg-black text-white" : "bg-[#FACC15]"
+                                )}
+                            >
                                 <SlidersHorizontal className="w-4 h-4" />
                                 FILTERS
+                                {(minPrice || maxPrice) && (
+                                    <span className="bg-[#EF4444] text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">!</span>
+                                )}
                             </button>
                         </div>
                     </div>
+
+                    {/* Filter Panel */}
+                    {showFilters && (
+                        <div className="mb-8 p-6 bg-white border-4 border-black rounded-2xl shadow-[4px_4px_0px_0px_#000]">
+                            <h3 className="font-black text-sm uppercase mb-4">Price Range</h3>
+                            <div className="flex flex-wrap items-end gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold mb-1">Min Price ($)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={minPrice}
+                                        onChange={(e) => { setMinPrice(e.target.value); setPage(1); }}
+                                        placeholder="0"
+                                        className="w-28 h-10 px-3 bg-white border-4 border-black rounded-lg font-bold text-sm focus:outline-none"
+                                    />
+                                </div>
+                                <span className="font-black text-lg pb-1">—</span>
+                                <div>
+                                    <label className="block text-xs font-bold mb-1">Max Price ($)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={maxPrice}
+                                        onChange={(e) => { setMaxPrice(e.target.value); setPage(1); }}
+                                        placeholder="∞"
+                                        className="w-28 h-10 px-3 bg-white border-4 border-black rounded-lg font-bold text-sm focus:outline-none"
+                                    />
+                                </div>
+                                {(minPrice || maxPrice) && (
+                                    <button
+                                        onClick={() => { setMinPrice(''); setMaxPrice(''); setPage(1); }}
+                                        className="h-10 px-4 bg-[#EF4444] text-white font-bold text-sm border-4 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                                    >
+                                        Clear
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Products Grid */}
                     {isLoadingProducts ? (

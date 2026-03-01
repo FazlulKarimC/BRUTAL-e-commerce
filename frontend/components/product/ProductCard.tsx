@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ShoppingBag, Heart, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPrice, calculateDiscount, cn } from '@/lib/utils';
 import { useCartStore } from '@/lib/cart';
+import { useAuthStore } from '@/lib/auth';
 import { useAddToWishlist, useRemoveFromWishlist, useCheckWishlist } from '@/lib/hooks';
 import type { ProductListItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -17,11 +19,13 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, className }: ProductCardProps) {
+    const router = useRouter();
     const { addItem, isLoading: isCartLoading } = useCartStore();
+    const { isAuthenticated } = useAuthStore();
     const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-    // Wishlist hooks
-    const { data: wishlistStatus } = useCheckWishlist(product.id);
+    // Wishlist hooks — only fire when authenticated to avoid 401 errors
+    const { data: wishlistStatus } = useCheckWishlist(isAuthenticated ? product.id : '');
     const addToWishlist = useAddToWishlist();
     const removeFromWishlist = useRemoveFromWishlist();
 
@@ -65,6 +69,14 @@ export function ProductCard({ product, className }: ProductCardProps) {
     const handleWishlistToggle = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+
+        if (!isAuthenticated) {
+            toast.error('Please sign in', {
+                description: 'You need to be logged in to save items',
+            });
+            router.push('/auth/login');
+            return;
+        }
 
         try {
             if (isInWishlist) {

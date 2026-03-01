@@ -55,9 +55,9 @@ export default function AdminDiscountsPage() {
 
     const isActive = (discount: any) => {
         const now = new Date();
-        const start = new Date(discount.startsAt);
+        const start = discount.startsAt ? new Date(discount.startsAt) : null;
         const end = discount.endsAt ? new Date(discount.endsAt) : null;
-        return discount.isActive && now >= start && (!end || now <= end);
+        return discount.active && (!start || now >= start) && (!end || now <= end);
     };
 
     return (
@@ -145,7 +145,7 @@ export default function AdminDiscountsPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-sm">
-                                            {discount.type === 'PERCENTAGE' ? 'Percentage' : 'Fixed Amount'}
+                                            {discount.type === 'PERCENTAGE' ? 'Percentage' : discount.type === 'FREE_SHIPPING' ? 'Free Shipping' : 'Fixed Amount'}
                                         </td>
                                         <td className="px-6 py-4 font-bold">
                                             {discount.type === 'PERCENTAGE'

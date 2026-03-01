@@ -61,7 +61,7 @@ export default function EditProductPage() {
 
     const updateProduct = useMutation({
         mutationFn: async (data: ProductFormData) => {
-            const res = await api.put(`/products/${productId}`, data);
+            const res = await api.patch(`/products/${productId}`, data);
             return res.data;
         },
         onSuccess: () => {

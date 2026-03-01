@@ -42,7 +42,7 @@ function useDashboardStats() {
             // Fetch stats from server-side aggregation endpoints
             const [statsRes, recentOrdersRes, customersRes, productsRes, analyticsRes] = await Promise.all([
                 api.get('/orders/stats'),           // Server-side aggregated revenue
-                api.get('/orders/admin?limit=5'),   // Only recent 5 for display
+                api.get('/orders?limit=5'),          // Only recent 5 for display (staff route)
                 api.get('/customers?limit=1'),
                 api.get('/products?limit=1'),
                 api.get('/orders/analytics/dashboard').catch(() => ({ data: {} })), // New analytics

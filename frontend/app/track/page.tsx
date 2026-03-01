@@ -74,8 +74,19 @@ export default function TrackOrderPage() {
         setOrder(null);
 
         try {
-            const response = await api.get(`/orders/number/${encodeURIComponent(orderNumber)}`);
-            setOrder(response.data);
+            const response = await api.get(
+                `/orders/number/${encodeURIComponent(orderNumber.trim())}`,
+                { params: { email: email.trim() } }
+            );
+            const data = response.data;
+
+            // Guard against partial payloads (e.g. minimal stub with only orderNumber/status)
+            if (!data || !Array.isArray(data.items) || data.total === undefined) {
+                setError('Order not found. Please check your order number and email.');
+                return;
+            }
+
+            setOrder(data);
         } catch (err: any) {
             if (err.response?.status === 404) {
                 setError('Order not found. Please check your order number and email.');

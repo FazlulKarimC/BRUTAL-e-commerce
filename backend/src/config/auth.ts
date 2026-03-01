@@ -3,12 +3,13 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./database";
 import { verifyPassword, hashPassword } from "../utils/password";
+import { env } from "./env";
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = env.isProduction;
 
 export const auth = betterAuth({
-    // Secret for signing session cookies - REQUIRED in production
-    secret: process.env.BETTER_AUTH_SECRET,
+    // Secret for signing session cookies - validated at startup via env.ts
+    secret: env.BETTER_AUTH_SECRET,
 
     database: prismaAdapter(prisma, {
         provider: "postgresql",

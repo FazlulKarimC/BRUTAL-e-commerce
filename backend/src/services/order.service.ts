@@ -45,7 +45,7 @@ export class OrderService {
         let discountType: string | null = null;
 
         if (input.discountCode) {
-            const discountResult = await this.applyDiscount(input.discountCode, subtotal);
+            const discountResult = await this.applyDiscount(input.discountCode, subtotal, customerId);
             discount = discountResult.discount;
             discountCodeId = discountResult.discountCodeId;
             discountType = discountResult.type;
@@ -70,53 +70,80 @@ export class OrderService {
         const tax = (subtotal - discount) * (taxRate / 100);
         const total = subtotal - discount + finalShipping + tax;
 
-        // Process mock payment
-        const paymentResult = await this.processPayment(input.paymentInfo, total);
+        // Process mock payment - THIS IS NOW HANDLED IN PHASE 2
+        // Calculate total is complete
 
-        if (!paymentResult.success) {
-            throw new Error(paymentResult.error || 'Payment failed');
-        }
-
-        // Create order in transaction
-        const order = await prisma.$transaction(async (tx) => {
-            // Validate inventory inside transaction to prevent overselling
+        // Phase 1: Create Order and Reserve Inventory (Transaction 1)
+        const { order, rollbackData } = await prisma.$transaction(async (tx) => {
+            // 1. Atomically deduct inventory to prevent overselling
+            const rollbackItems: Array<{ id: string; quantity: number }> = [];
             for (const item of cart.items) {
+                // Read current state to ensure valid
                 const currentVariant = await tx.productVariant.findUnique({
                     where: { id: item.variantId },
-                    select: { inventoryQty: true, product: { select: { title: true } } },
                 });
                 if (!currentVariant || currentVariant.inventoryQty < item.quantity) {
-                    throw new Error(`Insufficient inventory for ${currentVariant?.product.title || 'unknown product'}`);
+                    throw new Error(`Insufficient inventory for ${item.variant.product.title}`);
                 }
+
+                // Atomic decrement
+                const updatedVariant = await tx.productVariant.update({
+                    where: {
+                        id: item.variantId,
+                        // Optimistic concurrency control guard (optional safety layer)
+                        inventoryQty: { gte: item.quantity }
+                    },
+                    data: { inventoryQty: { decrement: item.quantity } },
+                });
+                rollbackItems.push({ id: item.variantId, quantity: item.quantity });
             }
 
-            // Always create an address record for the order (if customer exists)
-            // Address model requires customerId, so only create for authenticated users
-            let shippingAddressId: string | null = null;
+            // 2. Atomically increment discount usage if applicable
+            let usedDiscountId: string | null = null;
+            if (discountCodeId) {
+                const dc = await tx.discountCode.findUnique({ where: { id: discountCodeId } });
+                if (!dc || !dc.active) throw new Error('Discount code is no longer active');
+                if (dc.maxUses && dc.usedCount >= dc.maxUses) throw new Error('Discount code has reached its usage limit');
 
-            if (customerId) {
-                const customer = await tx.customer.findUnique({ where: { id: customerId } });
-                if (customer) {
-                    const address = await tx.address.create({
-                        data: {
-                            customerId: customer.id,
-                            ...input.shippingAddress,
-                            isDefault: false,
-                        },
+                // Enforce per-customer limits atomically if logged in
+                if (dc.usesPerCustomer && customerId) {
+                    const pastUses = await tx.order.count({
+                        where: { customerId, discountCodeId: dc.id, status: { notIn: ['CANCELLED', 'REFUNDED'] } }
                     });
-                    shippingAddressId = address.id;
+                    if (pastUses >= dc.usesPerCustomer) {
+                        throw new Error('You have already used this discount code the maximum number of times');
+                    }
                 }
+
+                await tx.discountCode.update({
+                    where: { id: discountCodeId },
+                    data: { usedCount: { increment: 1 } },
+                });
+                usedDiscountId = discountCodeId;
             }
 
-            // Create order
-            const order = await tx.order.create({
+            // 3. Create Address (if applicable)
+            let shippingAddressId: string | null = null;
+            if (customerId) {
+                const address = await tx.address.create({
+                    data: {
+                        customerId,
+                        ...input.shippingAddress,
+                        isDefault: false,
+                    },
+                });
+                shippingAddressId = address.id;
+            }
+
+            // 4. Create Order in PENDING state
+            const createdOrder = await tx.order.create({
                 data: {
                     orderNumber: generateOrderNumber(),
                     customerId,
                     email: input.email,
                     phone: input.phone,
-                    status: OrderStatus.PAID,
-                    financialStatus: 'paid',
+                    status: OrderStatus.PENDING,
+                    financialStatus: 'pending',
                     subtotal,
                     discount,
                     shippingCost: finalShipping,
@@ -128,11 +155,11 @@ export class OrderService {
                 },
             });
 
-            // Create order items
+            // 5. Create Order Items
             for (const item of cart.items) {
                 await tx.orderItem.create({
                     data: {
-                        orderId: order.id,
+                        orderId: createdOrder.id,
                         variantId: item.variantId,
                         productTitle: item.variant.product.title,
                         variantTitle: item.variant.title,
@@ -143,15 +170,56 @@ export class OrderService {
                         imageUrl: item.variant.product.images[0]?.url,
                     },
                 });
-
-                // Reduce inventory
-                await tx.productVariant.update({
-                    where: { id: item.variantId },
-                    data: { inventoryQty: { decrement: item.quantity } },
-                });
             }
 
-            // Create payment record
+            return {
+                order: createdOrder,
+                rollbackData: { items: rollbackItems, discountId: usedDiscountId }
+            };
+        });
+
+        // Phase 2: Process mock payment (outside transaction, since it's an external API call)
+        let paymentResult;
+        try {
+            paymentResult = await this.processPayment(input.paymentInfo, total);
+        } catch (error) {
+            paymentResult = { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+        }
+
+        // Phase 3: Finalize or Rollback Order
+        if (!paymentResult.success) {
+            // Payment failed: Roll back inventory, discount count, mark order failed
+            await prisma.$transaction(async (tx) => {
+                for (const item of rollbackData.items) {
+                    await tx.productVariant.update({
+                        where: { id: item.id },
+                        data: { inventoryQty: { increment: item.quantity } },
+                    });
+                }
+
+                if (rollbackData.discountId) {
+                    await tx.discountCode.update({
+                        where: { id: rollbackData.discountId },
+                        data: { usedCount: { decrement: 1 } },
+                    });
+                }
+
+                await tx.order.update({
+                    where: { id: order.id },
+                    data: { status: 'CANCELLED', financialStatus: 'failed', cancelReason: paymentResult.error },
+                });
+            });
+
+            throw new Error(paymentResult.error || 'Payment failed');
+        }
+
+        // Payment succeeded: Mark order paid and clear cart
+        await prisma.$transaction(async (tx) => {
+            await tx.order.update({
+                where: { id: order.id },
+                data: { status: OrderStatus.PAID, financialStatus: 'paid' },
+            });
+
             await tx.payment.create({
                 data: {
                     orderId: order.id,
@@ -164,19 +232,9 @@ export class OrderService {
                 },
             });
 
-            // Increment discount usage if used
-            if (discountCodeId) {
-                await tx.discountCode.update({
-                    where: { id: discountCodeId },
-                    data: { usedCount: { increment: 1 } },
-                });
-            }
-
-            // Clear cart
             await tx.cartItem.deleteMany({ where: { cartId } });
-
-            return order;
         });
+
 
         // Get the full order with all data for email
         const fullOrder = await this.findById(order.id);
@@ -211,7 +269,7 @@ export class OrderService {
     /**
      * Apply discount code
      */
-    async applyDiscount(code: string, subtotal: number) {
+    async applyDiscount(code: string, subtotal: number, customerId?: string) {
         const discountCode = await prisma.discountCode.findUnique({
             where: { code: code.toUpperCase() },
         });
@@ -235,6 +293,19 @@ export class OrderService {
 
         if (discountCode.maxUses && discountCode.usedCount >= discountCode.maxUses) {
             throw new Error('Discount code has reached its usage limit');
+        }
+
+        if (discountCode.usesPerCustomer && customerId) {
+            const pastUses = await prisma.order.count({
+                where: {
+                    customerId,
+                    discountCodeId: discountCode.id,
+                    status: { notIn: ['CANCELLED', 'REFUNDED'] }
+                }
+            });
+            if (pastUses >= discountCode.usesPerCustomer) {
+                throw new Error('You have already used this discount code the maximum number of times');
+            }
         }
 
         if (discountCode.minOrderAmount && subtotal < parseFloat(discountCode.minOrderAmount.toString())) {

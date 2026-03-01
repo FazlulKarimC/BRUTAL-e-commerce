@@ -16,14 +16,37 @@ router.get(
     requireStaff,
     async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const discounts = await prisma.discountCode.findMany({
-                orderBy: { createdAt: 'desc' },
-                include: {
-                    _count: { select: { orders: true } },
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 20;
+            const search = (req.query.search as string) || '';
+            const skip = (page - 1) * limit;
+
+            const where = search
+                ? { code: { contains: search, mode: 'insensitive' as const } }
+                : {};
+
+            const [discounts, total] = await Promise.all([
+                prisma.discountCode.findMany({
+                    where,
+                    orderBy: { createdAt: 'desc' },
+                    include: {
+                        _count: { select: { orders: true } },
+                    },
+                    skip,
+                    take: limit,
+                }),
+                prisma.discountCode.count({ where }),
+            ]);
+
+            res.json({
+                discounts,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit),
                 },
             });
-
-            res.json(discounts);
         } catch (error) {
             next(error);
         }

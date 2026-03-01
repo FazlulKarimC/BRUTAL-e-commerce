@@ -131,6 +131,37 @@ router.get(
     }
 );
 
+// Get collection by ID (admin)
+router.get(
+    '/:id',
+    authenticate,
+    requireStaff,
+    validateParams(idParamSchema),
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const collection = await prisma.collection.findUnique({
+                where: { id: req.params.id },
+                include: {
+                    products: {
+                        include: { product: { select: { id: true, title: true } } },
+                        orderBy: { position: 'asc' },
+                    },
+                    _count: { select: { products: true } },
+                },
+            });
+
+            if (!collection) {
+                res.status(404).json({ error: 'Collection not found' });
+                return;
+            }
+
+            res.json(collection);
+        } catch (error) {
+            next(error);
+        }
+    }
+);
+
 // Create collection
 router.post(
     '/',

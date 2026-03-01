@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 // Pagination
 export const paginationSchema = z.object({
-    page: z.string().optional().transform((val) => Math.max(1, parseInt(val || '1', 10))),
-    limit: z.string().optional().transform((val) => Math.min(100, Math.max(1, parseInt(val || '20', 10)))),
+    page: z.string().optional().transform((val) => { const n = parseInt(val || '1', 10); return isNaN(n) ? 1 : Math.max(1, n); }),
+    limit: z.string().optional().transform((val) => { const n = parseInt(val || '20', 10); return isNaN(n) ? 20 : Math.min(100, Math.max(1, n)); }),
 });
 
 // ID param
@@ -149,8 +149,8 @@ export const updateReviewSchema = z.object({
 
 // Order query
 export const orderQuerySchema = z.object({
-    page: z.string().optional().transform((val) => parseInt(val || '1', 10)),
-    limit: z.string().optional().transform((val) => parseInt(val || '20', 10)),
+    page: z.string().optional().transform((val) => { const n = parseInt(val || '1', 10); return isNaN(n) ? 1 : n; }),
+    limit: z.string().optional().transform((val) => { const n = parseInt(val || '20', 10); return isNaN(n) ? 20 : n; }),
     status: z.enum(['PENDING', 'PROCESSING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED']).optional(),
     customerId: z.string().optional(),
     startDate: z.string().optional(),

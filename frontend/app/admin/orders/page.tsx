@@ -40,7 +40,7 @@ export default function AdminOrdersPage() {
             params.set('limit', String(limit));
             if (search) params.set('search', search);
             if (status) params.set('status', status);
-            const res = await api.get(`/orders/admin?${params}`);
+            const res = await api.get(`/orders?${params}`);
             return res.data;
         },
     });

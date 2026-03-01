@@ -78,6 +78,35 @@ router.get(
 
 // ==================== ADMIN ROUTES ====================
 
+// Get category by ID (admin)
+router.get(
+    '/:id',
+    authenticate,
+    requireStaff,
+    validateParams(idParamSchema),
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const category = await prisma.category.findUnique({
+                where: { id: req.params.id },
+                include: {
+                    children: true,
+                    parent: true,
+                    _count: { select: { products: true } },
+                },
+            });
+
+            if (!category) {
+                res.status(404).json({ error: 'Category not found' });
+                return;
+            }
+
+            res.json(category);
+        } catch (error) {
+            next(error);
+        }
+    }
+);
+
 // Create category (handles race condition with optimistic concurrency)
 router.post(
     '/',

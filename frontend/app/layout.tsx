@@ -10,6 +10,7 @@ import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { QueryProvider } from "@/components/providers/QueryProvider"
 import { AuthProvider } from "@/components/providers/AuthProvider"
+import { CartInitializer } from "@/components/providers/CartInitializer"
 import { CartDrawer } from "@/components/cart/CartDrawer"
 
 // Initialize fonts
@@ -63,6 +64,7 @@ export default function RootLayout({
       <body className={`${dmSans.variable} ${spaceMono.variable} ${sourceSerif4.variable} font-sans antialiased`}>
         <QueryProvider>
           <AuthProvider>
+            <CartInitializer />
             <SiteHeader />
             {children}
             <SiteFooter />

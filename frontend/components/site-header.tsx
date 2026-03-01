@@ -136,27 +136,29 @@ export function SiteHeader() {
                   <Search className="h-5 w-5" />
                 </Button>
               )}
-              <Link href={isAuthenticated ? "/account" : "/auth/login"}>
+              <Button
+                asChild
+                variant="ghost"
+                size="icon"
+                className="border-2 border-transparent hover:border-black hover:bg-black hover:text-white rounded-lg"
+              >
+                <Link href={isAuthenticated ? "/account" : "/auth/login"}>
+                  <User className="h-5 w-5" />
+                </Link>
+              </Button>
+              {/* Admin Panel Button - Only for Admin/Staff */}
+              {isAuthenticated && (user?.role === 'ADMIN' || user?.role === 'STAFF') && (
                 <Button
+                  asChild
                   variant="ghost"
                   size="icon"
                   className="border-2 border-transparent hover:border-black hover:bg-black hover:text-white rounded-lg"
+                  title="Admin Panel"
                 >
-                  <User className="h-5 w-5" />
-                </Button>
-              </Link>
-              {/* Admin Panel Button - Only for Admin/Staff */}
-              {isAuthenticated && (user?.role === 'ADMIN' || user?.role === 'STAFF') && (
-                <Link href="/admin">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="border-2 border-transparent hover:border-black hover:bg-black hover:text-white rounded-lg"
-                    title="Admin Panel"
-                  >
+                  <Link href="/admin">
                     <Shield className="h-5 w-5" />
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               )}
               <Button
                 variant="default"

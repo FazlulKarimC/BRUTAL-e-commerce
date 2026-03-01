@@ -11,9 +11,7 @@
     "seed": "tsx prisma/seed.ts",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio",
-    "lint": "eslint src --ext .ts",
-    "test": "jest"
+    "db:studio": "prisma studio"
   },
   "keywords": [
     "ecommerce",

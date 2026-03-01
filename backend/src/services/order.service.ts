@@ -31,12 +31,7 @@ export class OrderService {
             throw new Error('Cart is empty');
         }
 
-        // Validate inventory
-        for (const item of cart.items) {
-            if (item.variant.inventoryQty < item.quantity) {
-                throw new Error(`Insufficient inventory for ${item.variant.product.title}`);
-            }
-        }
+        // Note: Inventory will be validated inside the transaction to prevent race conditions
 
         // Calculate totals
         const subtotal = cart.items.reduce(
@@ -84,10 +79,22 @@ export class OrderService {
 
         // Create order in transaction
         const order = await prisma.$transaction(async (tx) => {
-            // Create address if customer wants to save it
+            // Validate inventory inside transaction to prevent overselling
+            for (const item of cart.items) {
+                const currentVariant = await tx.productVariant.findUnique({
+                    where: { id: item.variantId },
+                    select: { inventoryQty: true, product: { select: { title: true } } },
+                });
+                if (!currentVariant || currentVariant.inventoryQty < item.quantity) {
+                    throw new Error(`Insufficient inventory for ${currentVariant?.product.title || 'unknown product'}`);
+                }
+            }
+
+            // Always create an address record for the order (if customer exists)
+            // Address model requires customerId, so only create for authenticated users
             let shippingAddressId: string | null = null;
 
-            if (customerId && input.saveAddress) {
+            if (customerId) {
                 const customer = await tx.customer.findUnique({ where: { id: customerId } });
                 if (customer) {
                     const address = await tx.address.create({

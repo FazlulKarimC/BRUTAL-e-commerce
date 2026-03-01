@@ -39,7 +39,7 @@ const checkoutBaseSchema = z.object({
     paymentInfo: paymentInfoSchema,
     discountCode: z.string().optional(),
     customerNotes: z.string().optional(),
-    saveAddress: z.boolean().default(false),
+    saveAddress: z.boolean().default(true),
     createAccount: z.boolean().default(false),
     password: z.string().min(8, 'Password must be at least 8 characters').optional(),
 });

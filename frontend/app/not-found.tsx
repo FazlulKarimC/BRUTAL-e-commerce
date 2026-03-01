@@ -73,7 +73,6 @@ export default function NotFound() {
                             { label: 'New Arrivals', href: '/collections/new-arrivals' },
                             { label: 'Collections', href: '/collections' },
                             { label: 'Categories', href: '/categories' },
-                            { label: 'Sale', href: '/sale' },
                         ].map((link) => (
                             <Link
                                 key={link.href}

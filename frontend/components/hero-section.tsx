@@ -27,24 +27,26 @@ export function HeroSection() {
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <Link href="/products">
-                <Button
-                  size="lg"
-                  className="font-bold text-lg px-8 py-6 border-4 border-black shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-lg"
-                >
+              <Button
+                asChild
+                size="lg"
+                className="font-bold text-lg px-8 py-6 border-4 border-black shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-lg"
+              >
+                <Link href="/products">
                   SHOP NOW
                   <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="/collections">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="font-bold text-lg px-8 py-6 border-4 border-black bg-white shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none hover:bg-white transition-all rounded-lg"
-                >
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="font-bold text-lg px-8 py-6 border-4 border-black bg-white shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none hover:bg-white transition-all rounded-lg"
+              >
+                <Link href="/collections">
                   EXPLORE
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
 

@@ -61,7 +61,7 @@ export default function EditCollectionPage() {
 
     const updateCollection = useMutation({
         mutationFn: async (data: CollectionFormData) => {
-            const res = await api.put(`/collections/${collectionId}`, data);
+            const res = await api.patch(`/collections/${collectionId}`, data);
             return res.data;
         },
         onSuccess: () => {

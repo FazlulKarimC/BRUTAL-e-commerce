@@ -159,15 +159,16 @@ export function ProductsSection() {
 
         {/* View All Button */}
         <div className="text-center mt-12">
-          <Link href="/products">
-            <Button
-              variant="outline"
-              size="lg"
-              className="font-bold text-lg px-12 py-6 border-4 border-black bg-white shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none hover:bg-secondary transition-all rounded-xl"
-            >
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="font-bold text-lg px-12 py-6 border-4 border-black bg-white shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none hover:bg-secondary transition-all rounded-xl"
+          >
+            <Link href="/products">
               VIEW ALL PRODUCTS
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
     </section>

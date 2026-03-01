@@ -39,7 +39,7 @@ interface OrderResult {
 
 const statusSteps = [
     { key: 'PENDING', label: 'Placed', icon: Clock },
-    { key: 'CONFIRMED', label: 'Confirmed', icon: CheckCircle },
+    { key: 'PAID', label: 'Paid', icon: CheckCircle },
     { key: 'PROCESSING', label: 'Processing', icon: Package },
     { key: 'SHIPPED', label: 'Shipped', icon: Truck },
     { key: 'DELIVERED', label: 'Delivered', icon: CheckCircle },
@@ -47,6 +47,7 @@ const statusSteps = [
 
 const statusIndex: Record<string, number> = {
     PENDING: 0,
+    PAID: 1,
     CONFIRMED: 1,
     PROCESSING: 2,
     SHIPPED: 3,
@@ -73,7 +74,7 @@ export default function TrackOrderPage() {
         setOrder(null);
 
         try {
-            const response = await api.get(`/orders/track?orderNumber=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(email)}`);
+            const response = await api.get(`/orders/number/${encodeURIComponent(orderNumber)}`);
             setOrder(response.data);
         } catch (err: any) {
             if (err.response?.status === 404) {

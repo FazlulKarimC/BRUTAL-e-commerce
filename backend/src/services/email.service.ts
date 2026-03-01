@@ -15,7 +15,7 @@ const DEV_EMAIL_OVERRIDE = process.env.DEV_EMAIL_OVERRIDE || 'fazlul0127@gmail.c
 // 1. Verify your domain at https://resend.com/domains
 // 2. Change FROM_EMAIL to use your verified domain (e.g., 'noreply@yourdomain.com')
 // 3. Set ENABLE_REAL_EMAILS to true below
-const ENABLE_REAL_EMAILS = false; // Set to true after verifying domain with Resend
+const ENABLE_REAL_EMAILS = process.env.ENABLE_REAL_EMAILS === 'true' || process.env.NODE_ENV === 'production'; // Auto-enabled in production
 
 // Helper to get the actual recipient (overrides to your email when ENABLE_REAL_EMAILS is false)
 function getRecipientEmail(originalEmail: string): string {

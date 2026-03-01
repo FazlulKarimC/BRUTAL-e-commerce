@@ -50,7 +50,7 @@ export default function AdminProductsPage() {
             params.set('limit', String(limit));
             if (search) params.set('search', search);
             if (status) params.set('status', status);
-            const res = await api.get(`/products/admin?${params}`);
+            const res = await api.get(`/products?${params}`);
             return res.data;
         },
     });

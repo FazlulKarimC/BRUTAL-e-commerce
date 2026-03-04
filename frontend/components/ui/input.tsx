@@ -10,7 +10,7 @@ const inputVariants = cva(
       variant: {
         // Neo Brutalism input
         brutal:
-          "border-4 border-black rounded-xl px-4 py-3 shadow-[4px_4px_0px_#000] focus:shadow-[2px_2px_0px_#000] focus:translate-x-[2px] focus:translate-y-[2px]",
+          "border-4 border-black rounded-xl px-4 py-3 shadow-[4px_4px_0px_#000] focus:border-[#FACC15] focus:shadow-[2px_2px_0px_#FACC15] focus:translate-x-[2px] focus:translate-y-[2px] transition-all duration-150",
         // Standard input (backwards compatibility)
         default:
           "border border-input rounded-md px-3 py-2 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
@@ -22,8 +22,8 @@ const inputVariants = cva(
       },
       state: {
         default: "",
-        error: "border-red-500 focus:border-red-500",
-        success: "border-green-500 focus:border-green-500",
+        error: "border-red-500 focus:border-red-500 focus:shadow-[2px_2px_0px_#EF4444] animate-brutal-shake",
+        success: "border-green-500 focus:border-green-500 focus:shadow-[2px_2px_0px_#22C55E]",
       },
     },
     defaultVariants: {
@@ -59,14 +59,14 @@ const textareaVariants = cva(
     variants: {
       variant: {
         brutal:
-          "border-4 border-black rounded-xl px-4 py-3 shadow-[4px_4px_0px_#000] focus:shadow-[2px_2px_0px_#000] focus:translate-x-[2px] focus:translate-y-[2px]",
+          "border-4 border-black rounded-xl px-4 py-3 shadow-[4px_4px_0px_#000] focus:border-[#FACC15] focus:shadow-[2px_2px_0px_#FACC15] focus:translate-x-[2px] focus:translate-y-[2px] transition-all duration-150",
         default:
           "border border-input rounded-md px-3 py-2 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
       },
       state: {
         default: "",
-        error: "border-red-500 focus:border-red-500",
-        success: "border-green-500 focus:border-green-500",
+        error: "border-red-500 focus:border-red-500 focus:shadow-[2px_2px_0px_#EF4444] animate-brutal-shake",
+        success: "border-green-500 focus:border-green-500 focus:shadow-[2px_2px_0px_#22C55E]",
       },
     },
     defaultVariants: {

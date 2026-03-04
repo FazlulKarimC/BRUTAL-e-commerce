@@ -63,7 +63,7 @@ export function CollectionsGrid() {
                 <Link
                   key={collection.id}
                   href={`/collections/${collection.slug}`}
-                  className={`group relative border-4 border-black shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all overflow-hidden rounded-xl ${index === 1 ? "md:-translate-y-4" : ""
+                  className={`group relative border-4 border-black shadow-[4px_4px_0px_#000] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_#000] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_#000] transition-all duration-200 overflow-hidden rounded-xl ${index === 1 ? "md:-translate-y-4 md:hover:-translate-y-5" : ""
                     }`}
                 >
                   <div className="aspect-square relative">
@@ -72,7 +72,7 @@ export function CollectionsGrid() {
                         src={collection.image}
                         alt={collection.title}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="object-cover group-hover:scale-[1.03] transition-transform duration-300"
                       />
                     ) : (
                       <div className="w-full h-full bg-gray-200 flex items-center justify-center">

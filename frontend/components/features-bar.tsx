@@ -15,7 +15,7 @@ export function FeaturesBar() {
           {features.map((feature, index) => (
             <div
               key={feature.label}
-              className={`flex items-center gap-3 p-4 border-4 border-black bg-background shadow-xs hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-xl ${index % 2 === 0 ? "rotate-1" : "-rotate-1"
+              className={`flex items-center gap-3 p-4 border-4 border-black bg-background shadow-[4px_4px_0px_#000] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_#000] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_#000] transition-all duration-200 rounded-xl ${index % 2 === 0 ? "rotate-1" : "-rotate-1"
                 } hover:rotate-0`}
             >
               <div className="bg-secondary p-3 border-4 border-black rounded-lg">

@@ -37,7 +37,7 @@ export default function AccountLayout({
 
     if (isLoading) {
         return (
-            <div className="min-h-screen py-12 bg-gray-50">
+            <div className="min-h-screen py-12 bg-[#FAFAFA]">
                 <div className="container mx-auto px-4">
                     <Skeleton className="h-10 w-48 mb-8" />
                     <div className="flex gap-8">
@@ -58,7 +58,7 @@ export default function AccountLayout({
     }
 
     return (
-        <div className="py-8 min-h-screen bg-gray-50">
+        <div className="py-8 min-h-screen bg-[#FAFAFA]">
             <div className="container mx-auto px-4">
                 {/* Header */}
                 <div className="mb-8">
@@ -70,7 +70,7 @@ export default function AccountLayout({
 
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Sidebar */}
-                    <aside className="lg:w-64 flex-shrink-0">
+                    <aside className="lg:w-64 shrink-0">
                         <Card shadow="md">
                             <CardContent className="p-4 space-y-1">
                                 {navItems.map((item) => {

@@ -209,7 +209,7 @@ function RegisterFormSkeleton() {
 
 export default function RegisterPage() {
     return (
-        <div className="min-h-[80vh] flex items-center justify-center py-12 bg-gray-50">
+        <div className="min-h-[80vh] flex items-center justify-center py-12 bg-[#FAFAFA]">
             <div className="container max-w-md px-4">
                 <Suspense fallback={<RegisterFormSkeleton />}>
                     <RegisterForm />

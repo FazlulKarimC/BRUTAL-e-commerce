@@ -105,7 +105,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             href={`/products/${product.slug}`}
             className={cn("block", className)}
         >
-            <div className="group bg-white border-4 border-black rounded-xl overflow-hidden shadow-[4px_4px_0px_0px_#000] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_#000] transition-all duration-300">
+            <div className="group bg-white border-4 border-black rounded-xl overflow-hidden shadow-[4px_4px_0px_0px_#000] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_#000] transition-all duration-200">
                 {/* Image Container */}
                 <div className="relative aspect-square overflow-hidden bg-gray-100">
                     {firstImage ? (
@@ -114,7 +114,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                             alt={firstImage.alt || product.title}
                             fill
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="object-cover group-hover:scale-[1.03] transition-transform duration-300"
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center">
@@ -144,7 +144,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                             onClick={handleWishlistToggle}
                             disabled={isWishlistLoading}
                             className={cn(
-                                "w-10 h-10 border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0px_0px_#000] transition-all",
+                                "w-10 h-10 border-4 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#000] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_0px_#000] transition-all duration-200",
                                 isInWishlist
                                     ? "bg-[#EF4444] text-white hover:bg-[#EF4444]/90"
                                     : "bg-white text-black hover:bg-[#FACC15]"
@@ -168,7 +168,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                             size="icon"
                             onClick={handleAddToCart}
                             disabled={isAddingToCart || isCartLoading || !firstVariant || firstVariant.inventoryQty === 0}
-                            className="w-10 h-10 bg-black text-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#FACC15] hover:bg-[#FACC15] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0px_0px_#000] transition-all"
+                            className="w-10 h-10 bg-black text-white border-4 border-black rounded-lg shadow-[4px_4px_0px_0px_#FACC15] hover:bg-[#FACC15] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#000] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_0px_#000] transition-all duration-200"
                             aria-label="Add to cart"
                         >
                             {isAddingToCart ? (

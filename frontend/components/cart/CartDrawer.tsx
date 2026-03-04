@@ -191,7 +191,7 @@ export function CartDrawer() {
                                     <span className="text-gray-600">Subtotal</span>
                                     <span className="font-bold">{formatPrice(cart.subtotal)}</span>
                                 </div>
-                                <div className="flex justify-between pt-1 border-t border-dashed border-gray-300">
+                                <div className="flex justify-between pt-1 border-t-2 border-black">
                                     <span className="font-bold text-sm">Total</span>
                                     <span className="font-black text-base">{formatPrice(cart.subtotal)}</span>
                                 </div>
@@ -200,7 +200,7 @@ export function CartDrawer() {
                             {/* Buttons - Smaller buttons */}
                             <Button
                                 asChild
-                                className="w-full bg-black text-secondary hover:bg-gray-800 border-4 border-black rounded-lg py-4 font-black text-sm shadow-[4px_4px_0px_0px_#FACC15] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+                                className="w-full bg-black text-secondary hover:bg-gray-800 border-4 border-black rounded-lg py-4 font-black text-sm shadow-[4px_4px_0px_0px_#FACC15] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#FACC15] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_0px_#FACC15] transition-all duration-200"
                             >
                                 <Link href="/checkout" onClick={closeCart}>
                                     Checkout
@@ -211,7 +211,7 @@ export function CartDrawer() {
                                 onClick={closeCart}
                                 asChild
                                 variant="outline"
-                                className="w-full mt-2 border-4 border-black rounded-lg py-3 font-bold text-sm hover:bg-primary hover:text-black shadow-[4px_4px_0px_0px_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all bg-transparent"
+                                className="w-full mt-2 border-4 border-black rounded-lg py-3 font-bold text-sm hover:bg-primary hover:text-black shadow-[4px_4px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#000] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_0px_#000] transition-all duration-200 bg-transparent"
                             >
                                 <Link href="/products">Continue Shopping</Link>
                             </Button>

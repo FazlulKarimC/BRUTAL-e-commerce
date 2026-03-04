@@ -33,7 +33,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="py-8 min-h-screen bg-gray-50">
+    <div className="py-8 min-h-screen bg-[#FAFAFA]">
       <div className="container mx-auto px-4">
         <h1 className="text-4xl md:text-5xl font-black mb-8">Shopping Cart</h1>
 

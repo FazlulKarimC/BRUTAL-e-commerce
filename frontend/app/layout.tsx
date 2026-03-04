@@ -5,7 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "sonner"
 import "./globals.css"
 
-import { DM_Sans, Space_Mono, Source_Serif_4 } from 'next/font/google'
+import { DM_Sans, Space_Grotesk, Space_Mono, Source_Serif_4 } from 'next/font/google'
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { QueryProvider } from "@/components/providers/QueryProvider"
@@ -18,6 +18,11 @@ const dmSans = DM_Sans({
   subsets: ['latin'],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000"],
   variable: '--font-dm-sans'
+})
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: '--font-space-grotesk'
 })
 const spaceMono = Space_Mono({
   subsets: ['latin'],
@@ -61,7 +66,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} ${spaceMono.variable} ${sourceSerif4.variable} font-sans antialiased`}>
+      <body className={`${dmSans.variable} ${spaceGrotesk.variable} ${spaceMono.variable} ${sourceSerif4.variable} font-sans antialiased`}>
         <QueryProvider>
           <AuthProvider>
             <CartInitializer />
@@ -73,7 +78,7 @@ export default function RootLayout({
               position="bottom-right"
               toastOptions={{
                 style: {
-                  border: '3px solid black',
+                  border: '4px solid black',
                   borderRadius: '12px',
                   boxShadow: '4px 4px 0px #000',
                   fontWeight: 600,

@@ -98,7 +98,7 @@ export function ProductsSection() {
               return (
                 <div key={product.id} className={`group ${index % 2 === 1 ? "md:translate-y-4" : ""}`}>
                   <Link href={`/products/${product.slug}`}>
-                    <div className="relative border-4 border-black bg-muted shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-xl overflow-hidden">
+                    <div className="relative border-4 border-black bg-muted shadow-[4px_4px_0px_#000] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_#000] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_#000] transition-all duration-200 rounded-xl overflow-hidden">
                       {badge && (
                         <div
                           className={`absolute top-3 left-3 z-10 ${badge.color} text-black font-mono text-xs font-bold px-3 py-1 border-2 border-black -rotate-3 rounded-md`}
@@ -114,7 +114,7 @@ export function ProductsSection() {
                             src={imageUrl}
                             alt={product.title}
                             fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="object-cover group-hover:scale-[1.03] transition-transform duration-300"
                           />
                         ) : (
                           <div className="w-full h-full bg-gray-200 flex items-center justify-center">
@@ -128,7 +128,7 @@ export function ProductsSection() {
                         aria-label="Add to cart"
                         disabled={isAdding || !variant}
                         onClick={(e) => handleAddToCart(e, product)}
-                        className="absolute bottom-3 right-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity border-4 border-black shadow-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none rounded-lg"
+                        className="absolute bottom-3 right-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all border-4 border-black shadow-[2px_2px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#000] active:translate-x-0 active:translate-y-0 active:shadow-none rounded-lg"
                       >
                         {isAdding ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -163,7 +163,7 @@ export function ProductsSection() {
             asChild
             variant="outline"
             size="lg"
-            className="font-bold text-lg px-12 py-6 border-4 border-black bg-white shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none hover:bg-secondary transition-all rounded-xl"
+            className="font-bold text-lg px-12 py-6 border-4 border-black bg-white shadow-[4px_4px_0px_#000] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_#000] hover:bg-secondary active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_#000] transition-all duration-200 rounded-xl"
           >
             <Link href="/products">
               VIEW ALL PRODUCTS

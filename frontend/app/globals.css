@@ -147,3 +147,75 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ============================================
+   NEO-BRUTALISM ANIMATION SYSTEM
+   ============================================ */
+
+:root {
+  --dur-fast: 80ms;
+  --dur-snap: 150ms;
+  --dur-normal: 250ms;
+}
+
+/* Shake animation — for input error states */
+@keyframes brutal-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+/* Bounce/pulse — for add-to-cart confirmation */
+@keyframes brutal-bounce {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.15); }
+  50% { transform: scale(0.95); }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Pop — for badge count updates */
+@keyframes brutal-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+/* Slide in from right — for drawers/menus */
+@keyframes brutal-slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+/* Slide in from top — for toasts/notifications */
+@keyframes brutal-slide-in-top {
+  from { transform: translateY(-16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Utility classes */
+.animate-brutal-shake {
+  animation: brutal-shake var(--dur-normal) ease-in-out;
+}
+
+.animate-brutal-bounce {
+  animation: brutal-bounce var(--dur-normal) ease-in-out;
+}
+
+.animate-brutal-pop {
+  animation: brutal-pop var(--dur-snap) ease-out;
+}
+
+/* Accessibility: respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

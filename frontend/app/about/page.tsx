@@ -4,7 +4,7 @@ import { Button } from '@/components/ui';
 
 export default function AboutPage() {
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-[#FAFAFA]">
             {/* Hero Section */}
             <section className="bg-yellow-400 border-b-4 border-black py-20">
                 <div className="container mx-auto max-w-5xl px-4 text-center">

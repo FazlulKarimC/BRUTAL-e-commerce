@@ -30,7 +30,7 @@ export function HeroSection() {
               <Button
                 asChild
                 size="lg"
-                className="font-bold text-lg px-8 py-6 border-4 border-black shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-lg"
+                className="font-bold text-lg px-8 py-6 border-4 border-black shadow-[4px_4px_0px_#000] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_#000] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_#000] transition-all duration-200 rounded-lg"
               >
                 <Link href="/products">
                   SHOP NOW
@@ -41,7 +41,7 @@ export function HeroSection() {
                 asChild
                 variant="outline"
                 size="lg"
-                className="font-bold text-lg px-8 py-6 border-4 border-black bg-white shadow-md hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none hover:bg-white transition-all rounded-lg"
+                className="font-bold text-lg px-8 py-6 border-4 border-black bg-white shadow-[4px_4px_0px_#000] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_#000] hover:bg-yellow-400 active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_#000] transition-all duration-200 rounded-lg"
               >
                 <Link href="/collections">
                   EXPLORE

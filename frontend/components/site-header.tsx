@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ShoppingBag, Menu, Search, User, X, Shield } from "lucide-react"
@@ -16,6 +16,8 @@ export function SiteHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const cartBadgeRef = useRef<HTMLSpanElement>(null)
+  const prevItemCount = useRef(cart?.itemCount || 0)
 
   // Focus input when search opens
   useEffect(() => {
@@ -48,6 +50,18 @@ export function SiteHeader() {
     }
     return () => window.removeEventListener("keydown", handleEscape)
   }, [isSearchOpen, isMobileMenuOpen])
+
+  // Animate cart badge when count changes
+  useEffect(() => {
+    const currentCount = cart?.itemCount || 0
+    if (currentCount !== prevItemCount.current && currentCount > 0 && cartBadgeRef.current) {
+      cartBadgeRef.current.classList.remove('animate-brutal-pop')
+      // Force reflow to restart animation
+      void cartBadgeRef.current.offsetWidth
+      cartBadgeRef.current.classList.add('animate-brutal-pop')
+    }
+    prevItemCount.current = currentCount
+  }, [cart?.itemCount])
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -103,7 +117,7 @@ export function SiteHeader() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search products..."
-                    className="w-40 md:w-64 h-9 px-3 bg-white border-2 border-black rounded-lg font-medium text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                    className="w-40 md:w-64 h-9 px-3 bg-white border-4 border-black rounded-lg font-medium text-sm focus:outline-none focus:border-[#FACC15] focus:shadow-[2px_2px_0px_#FACC15] transition-all duration-150"
                   />
                   <Button
                     type="submit"
@@ -168,7 +182,9 @@ export function SiteHeader() {
               >
                 <ShoppingBag className="h-5 w-5" />
                 {cart && cart.itemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-black text-secondary text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                  <span
+                    ref={cartBadgeRef}
+                    className="absolute -top-2 -right-2 bg-black text-secondary text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
                     {cart.itemCount}
                   </span>
                 )}

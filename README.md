@@ -1,330 +1,142 @@
-# � BRUTAL — Neo Brutalist E-Commerce
+# BRUTAL
 
-<div align="center">
+**An e-commerce app where the checkout has a 3-phase transactional pipeline and the buttons look like they were cut from construction paper.**
 
-![Neo Brutalism](https://img.shields.io/badge/Design-Neo%20Brutalism-000000?style=for-the-badge&labelColor=FACC15)
-![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)
-![React 19](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![Express 5](https://img.shields.io/badge/Express-5-000000?style=for-the-badge&logo=express&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
-
-**A bold, unapologetic e-commerce experience.**
-
-*Thick borders. Hard shadows. No compromises.*
-
-[Live Demo](#) • [Features](#-features) • [Quick Start](#-quick-start) • [Design System](#-design-system)
-
-</div>
+Full-stack online store with a Neo Brutalist UI — 4px black borders, hard offset shadows, zero blur, four colors total. Not a theme slapped on a template. The design system is enforced from the hero section to the admin dashboard, and the backend handles inventory races, guest-to-user cart merging, and discount edge cases that most portfolio projects pretend don't exist.
 
 ---
 
-## 💡 What is This?
+## What's Inside
 
-**BRUTAL** is a full-stack e-commerce application that breaks away from the boring, cookie-cutter online stores. Built with a striking **Neo Brutalism** design language — think thick black borders, offset shadows, and bold color blocking — this isn't just another shop template.
+- **Cart state lives in Zustand with `persist` middleware and debounced optimistic updates** — quantity changes hit the UI instantly, API calls are batched at 500ms, and failed syncs revert to server truth. No Redux. The entire store fits in one file.
 
-It's a statement.
+- **Guest → authenticated cart merge** happens server-side in a single Prisma transaction. Shop as a guest, log in, and your cart items carry over with proper inventory validation. Session IDs are tracked via `localStorage` and cleaned up after merge.
 
-> *"Bold designs for bold people."*
+- **Checkout is a 3-phase process**: Phase 1 reserves inventory + creates the order inside a transaction with optimistic concurrency guards. Phase 2 processes payment outside the transaction (simulated external API). Phase 3 either finalizes the order or rolls back inventory, discount usage counts, and marks the order as failed. Most e-commerce tutorials skip all of this.
 
----
+- **Discount codes handle the annoying cases**: per-customer usage limits, min order amounts, date-range validity, global usage caps, and free shipping as a discount type. All validated atomically inside the checkout transaction.
 
-## ✨ Features
+- **Admin dashboard parallelizes 5 API calls** (`Promise.all`) to render stats, recent orders, customer counts, product counts, and analytics in one shot.
 
-### 🛍️ **Customer Experience**
-
-| Feature | Description |
-|---------|-------------|
-| **Smart Product Catalog** | Browse with filters by category, price range, and search |
-| **Dynamic Collections** | Curated collections like "New Arrivals" and "Best Sellers" |
-| **Lightning Cart** | Real-time cart with persistent state across sessions |
-| **Guest Checkout** | Purchase without creating an account |
-| **Cart Merging** | Guest cart seamlessly merges when you log in |
-| **Order Tracking** | Track your order status at any time |
-| **Product Reviews** | Read and write reviews for products |
-
-### 🎨 **Rich UI/UX**
-
-| Feature | Description |
-|---------|-------------|
-| **Neo Brutalist Design** | Unique visual identity with 4-color palette |
-| **Responsive Layout** | Flawless experience from mobile to desktop |
-| **Smooth Animations** | Signature "lift" hover effects on all interactive elements |
-| **Dynamic Search** | Real-time product search in the header |
-| **Image Galleries** | Product pages with multiple images & color swatches |
-
-### � **Admin Dashboard**
-
-| Feature | Description |
-|---------|-------------|
-| **Revenue Analytics** | Track sales and revenue at a glance |
-| **Order Management** | View, filter, and update order statuses |
-| **Product CRUD** | Full product management with variants |
-| **Customer Insights** | Access customer data and order history |
-| **Role-Based Access** | Separate Admin and Staff permissions |
-
-### 🔐 **Authentication & Security**
-
-| Feature | Description |
-|---------|-------------|
-| **Better Auth** | Modern authentication with secure sessions |
-| **Protected Routes** | Role-based access control throughout |
-| **HTTP-Only Cookies** | Secure token storage |
-| **Account Management** | Profile updates, address book, order history |
+- **Neo Brutalism design system has its own 522-line spec** (`frontend/DESIGN_SYSTEM.md`) with documented shadow tokens (`2px 2px 0px #000` through `8px 8px 0px #000`), a signature "lift" hover effect on every interactive element, rotated badge aesthetics, and strict rules against blurred shadows, gradients, or colors outside the 4-color palette.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-<table>
-<tr>
-<td align="center" width="150"><strong>Frontend</strong></td>
-<td>
-
-- **Next.js 16** with App Router
-- **React 19** with Server Components
-- **Tailwind CSS 4** (latest)
-- **React Query** for server state
-- **Zustand** for client state
-
-</td>
-</tr>
-<tr>
-<td align="center"><strong>Backend</strong></td>
-<td>
-
-- **Express 5** with TypeScript
-- **Prisma ORM** for database access
-- **PostgreSQL** database
-- **Zod** for runtime validation
-- **Better Auth** for authentication
-
-</td>
-</tr>
-<tr>
-<td align="center"><strong>DevEx</strong></td>
-<td>
-
-- **Turbopack** for instant HMR
-- **Concurrently** for parallel dev servers
-- **TypeScript** throughout
-- **Monorepo** structure
-
-</td>
-</tr>
-</table>
+| Layer | Choice | Why |
+|-------|--------|-----|
+| **Frontend** | Next.js 16, React 19, App Router | Server Components, Turbopack HMR |
+| **Styling** | Tailwind CSS 4 | Utility-first, pairs well with the strict design tokens |
+| **Client state** | Zustand 5 | Cart + auth stores in ~250 lines total. Zustand over Redux — no boilerplate tax |
+| **Server state** | TanStack React Query 5 | Hooks layer (`lib/hooks.ts`) wraps every API call with caching + refetch |
+| **Backend** | Express 5, TypeScript 5 | Named splat params, native async error handling |
+| **Database** | PostgreSQL + Prisma 6 | 615-line schema, 20+ models, typed queries |
+| **Auth** | Better Auth | Session cookies (HTTP-only, `sameSite: none` for cross-domain), 7-day expiry, role-based access |
+| **Validation** | Zod (both ends) | Runtime type safety on API inputs and form submissions |
+| **Email** | Resend | Order confirmations, shipping notifications, contact forms |
+| **Forms** | React Hook Form + Zod resolvers | Client-side validation with the same Zod schemas |
+| **Dev** | Concurrently, tsx watch | One `npm run dev` starts both servers |
 
 ---
 
-## 🎨 Design System
+## Getting Started
 
-This project follows a strict **Neo Brutalism** design language:
-
-```
-┌─────────────────────────────────────────────────────┐
-│  🟡 YELLOW #FACC15 — Attention, highlights, badges  │
-│  🔴 RED    #EF4444 — CTAs, urgency, action          │
-│  ⚫ BLACK  #000000 — Borders, shadows, text         │
-│  ⚪ WHITE  #FFFFFF — Backgrounds, breathing room    │
-└─────────────────────────────────────────────────────┘
-```
-
-### Signature Elements
-- **4px black borders** on all cards and inputs
-- **Hard-offset shadows** like `4px 4px 0px #000`
-- **Lift hover effect** — elements rise with shadow expansion
-- **Bold typography** — Space Grotesk for headings, DM Sans for body
-- **Rotated badges** for that hand-stamped aesthetic
-
-> 📖 **[Full Design System Documentation →](frontend/DESIGN_SYSTEM.md)**
-
----
-
-## � Quick Start
-
-### Prerequisites
-
-- **Node.js** 18+
-- **PostgreSQL** database
-- **npm** or **yarn**
-
-### 1️⃣ Clone & Install
+**Prerequisites**: Node.js 18+, a PostgreSQL database.
 
 ```bash
 git clone https://github.com/FazlulKarimC/eCommerce_app.git
 cd eCommerce_app
 
-# Install all dependencies
-npm run install:all
+npm run install:all       # installs root + backend + frontend deps
+
+# Configure backend/.env (see backend/.env.example)
+# Configure frontend/.env.local → NEXT_PUBLIC_API_URL=http://localhost:3001
+
+npm run db:push           # push Prisma schema to your database
+npm run db:seed           # seed products, collections, users, discount codes
+
+npm run dev               # starts backend (:3001) + frontend (:3000)
 ```
 
-### 2️⃣ Configure Environment
-
-**Backend** (`backend/.env`):
-```env
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
-JWT_SECRET="your-super-secret-key"
-BETTER_AUTH_SECRET="another-secret-for-better-auth"
-CLIENT_URL="http://localhost:3000"
-PORT=3001
-```
-
-**Frontend** (`frontend/.env.local`):
-```env
-NEXT_PUBLIC_API_URL="http://localhost:3001"
-```
-
-### 3️⃣ Setup Database
-
-```bash
-# Push schema to database
-npm run db:push
-
-# Seed with sample products, collections & users
-npm run db:seed
-```
-
-### 4️⃣ Launch! 🚀
-
-```bash
-npm run dev
-```
-
-| Service | URL |
-|---------|-----|
-| **🌐 Storefront** | http://localhost:3000 |
-| **⚡ API Server** | http://localhost:3001 |
-| **🗄️ Prisma Studio** | `npm run db:studio` |
+**Seed accounts**: `admin@brutal.com` / `Admin123!` (admin), `customer@brutal.com` / `Customer123!` (customer).
 
 ---
 
-## � Demo Accounts
-
-| Role | Email | Password |
-|------|-------|----------|
-| **👑 Admin** | admin@brutal.com | Admin123! |
-| **👤 Staff** | staff@brutal.com | Staff123! |
-| **🛒 Customer** | customer@brutal.com | Customer123! |
-
----
-
-## 📜 Scripts Reference
-
-| Command | What it does |
-|---------|--------------|
-| `npm run dev` | 🚀 Start frontend + backend in dev mode |
-| `npm run build` | 📦 Build both for production |
-| `npm run start` | 🏃 Start production servers |
-| `npm run install:all` | 📥 Install all dependencies |
-| `npm run db:push` | 🔄 Push Prisma schema |
-| `npm run db:migrate` | 📋 Run migrations |
-| `npm run db:seed` | 🌱 Seed sample data |
-| `npm run db:studio` | 🔍 Open Prisma GUI |
-
----
-
-## � Project Structure
+## Project Structure
 
 ```
-ecommerce_app/
-├── 📦 package.json          # Monorepo root
+├── backend/
+│   ├── prisma/
+│   │   ├── schema.prisma         # 615 lines — products, variants, carts, orders,
+│   │   │                         #   payments, fulfillments, discounts, reviews, wishlist
+│   │   └── seed.ts               # Generates realistic sample catalog
+│   └── src/
+│       ├── routes/               # 14 route files (products, cart, checkout, orders,
+│       │                         #   collections, categories, reviews, wishlist, etc.)
+│       ├── services/             # Business logic (cart merge, 3-phase checkout,
+│       │                         #   product queries, email dispatch)
+│       ├── middleware/           # Auth, RBAC, Zod validation, rate limiting, error handler
+│       ├── validators/           # Zod schemas for every endpoint
+│       └── config/               # Prisma client, Better Auth setup, env validation
 │
-├── 🔙 backend/
-│   ├── src/
-│   │   ├── routes/          # API endpoints
-│   │   ├── services/        # Business logic
-│   │   ├── middleware/      # Auth, validation
-│   │   └── utils/           # Helpers
-│   └── prisma/
-│       ├── schema.prisma    # Database models
-│       └── seed.ts          # Sample data
+├── frontend/
+│   ├── app/                      # Next.js App Router
+│   │   ├── products/             # Catalog with filters, product detail with reviews
+│   │   ├── cart/ & checkout/     # Full purchase flow with discount codes
+│   │   ├── account/              # Orders, addresses, wishlist
+│   │   ├── admin/                # Dashboard, product/order/customer/discount management
+│   │   ├── collections/          # Curated product groups
+│   │   ├── categories/           # Category browsing
+│   │   └── track/                # Order tracking by number
+│   ├── components/               # UI kit (Button, Card, Badge, CartDrawer, etc.)
+│   └── lib/                      # API client, Zustand stores, React Query hooks, types
 │
-└── 🎨 frontend/
-    ├── app/                  # Next.js App Router
-    │   ├── (auth)/           # Login, Register
-    │   ├── account/          # User dashboard
-    │   ├── admin/            # Admin panel
-    │   ├── products/         # Product pages
-    │   ├── collections/      # Collection pages
-    │   ├── categories/       # Category pages
-    │   ├── cart/             # Shopping cart
-    │   ├── checkout/         # Checkout flow
-    │   └── thank-you/        # Order confirmation
-    ├── components/           # UI components
-    └── lib/                  # Utilities, hooks, API
+└── package.json                  # Monorepo root — `npm run dev` starts everything
 ```
 
 ---
 
-## 🌐 API Overview
+## Design System
 
-<details>
-<summary><strong>📂 Public Endpoints</strong></summary>
+Four colors. No exceptions.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/products` | List products with filters |
-| GET | `/api/products/:slug` | Product details |
-| GET | `/api/collections` | List collections |
-| GET | `/api/categories` | List categories |
-| POST | `/api/auth/login` | User login |
-| POST | `/api/auth/register` | User registration |
+| Color | Hex | Role |
+|-------|-----|------|
+| Electric Yellow | `#FACC15` | Highlights, badges, hover states |
+| Signal Red | `#EF4444` | CTAs, sale indicators, urgency |
+| Pure Black | `#000000` | 4px borders, offset shadows, text |
+| Off-White | `#FAFAFA` | Backgrounds, breathing room |
 
-</details>
+**Key rules**:
+- All shadows are hard offsets (`4px 4px 0px #000`) — blur is banned
+- Every interactive element uses the "lift" hover: `-translate-x-1 -translate-y-1` with shadow expansion to `8px 8px 0px #000`
+- Badges get a slight rotation (`-rotate-2` / `rotate-2`) for a hand-stamped look
+- Typography: Space Grotesk for headings (font-weight 900), DM Sans for body, Space Mono for accents
+- Green is the only exception color, used strictly for success/delivery status indicators
 
-<details>
-<summary><strong>🔒 Protected Endpoints</strong></summary>
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/cart` | Get user cart |
-| POST | `/api/cart/add` | Add to cart |
-| POST | `/api/orders` | Create order |
-| GET | `/api/orders` | User orders |
-| GET | `/api/account/profile` | User profile |
-
-</details>
-
-<details>
-<summary><strong>👑 Admin Endpoints</strong></summary>
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/admin/orders` | Manage orders |
-| GET | `/api/orders/revenue` | Revenue analytics |
-| GET | `/api/admin/customers` | Customer list |
-| POST | `/api/admin/products` | Create product |
-
-</details>
+Full spec: [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md)
 
 ---
 
-## 🤝 Contributing
+## Screenshots
 
-PRs are welcome! Here's how:
-
-1. **Fork** the repo
-2. **Create** a feature branch (`git checkout -b feature/amazing`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing`)
-5. **Open** a Pull Request
-
-> ⚠️ Please follow the **Design System** for any UI changes!
+> Screenshots to add: landing page hero, product detail with variant selector, cart drawer, checkout flow, admin dashboard, mobile responsive view.
 
 ---
 
-## 📄 License
+## What I'd Do Differently
 
-MIT © Fazlul Karim
+- **Replace the mock payment processor** with Stripe. The 3-phase checkout architecture was designed with this in mind — Phase 2 already runs outside the main transaction, so swapping in a real payment API is a matter of replacing `processPayment()` in `order.service.ts`.
+
+- **Add server-side pagination to the admin orders table**. Right now the React Query hook fetches paginated data, but the initial load pulls recent orders without cursor-based pagination. Under high order volume, this would need proper keyset pagination.
+
+- **Extract the product filtering logic** into a query-builder utility. The current filter construction in `product.service.ts` works but gets nested fast when combining category, collection, price range, tag, and search filters simultaneously.
+
+- **Add image uploads**. Product images are currently URLs in the seed data. A real deploy needs an upload pipeline (S3/Cloudinary) with the `ProductImage` model already supporting `mimeType`, `size`, `width`, and `height` fields — those columns are there, just waiting.
 
 ---
 
-<div align="center">
+## Author
 
-### Made with 💛🖤❤️🤍
-
-**Built with time, effort, and dedication by [Fazlul Karim](https://github.com/FazlulKarimC)**
-
-*— Because boring websites don't deserve customers —*
-
-</div>
+**Fazlul Karim** — [GitHub](https://github.com/FazlulKarimC)

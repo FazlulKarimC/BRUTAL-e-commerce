@@ -1,280 +1,144 @@
-# ⚡ BRUTAL Backend
+# BRUTAL — Backend
 
-<div align="center">
+**Express 5 API with a checkout pipeline that actually handles inventory races.**
 
-![Express 5](https://img.shields.io/badge/Express-5-000000?style=for-the-badge&logo=express&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
-
-**The engine behind BRUTAL — fast, secure, and scalable.**
-
-*RESTful API • Better Auth • Real-time validation*
-
-</div>
+This is the REST API powering BRUTAL. It runs the full order lifecycle — cart management (including guest sessions), a 3-phase transactional checkout with rollback, discount code validation with per-customer limits, role-based access control, and transactional emails via Resend. TypeScript end-to-end, every input validated with Zod at the middleware layer.
 
 ---
 
-## ⚡ What's Inside
+## What's Inside
 
-This is the **Express 5** backend for BRUTAL, featuring:
+- **3-phase checkout in `order.service.ts`**: Transaction 1 reserves inventory with optimistic concurrency guards (`inventoryQty >= requested`) and creates the order. Phase 2 processes payment outside the transaction (simulating an external API call). Phase 3 either finalizes or rolls back inventory + discount usage counts. Failed payments don't leave phantom orders or oversold stock.
 
-- 🔐 **Better Auth** with secure session cookies
-- 🗄️ **Prisma ORM** for type-safe database access
-- ✅ **Zod Validation** for runtime type checking
-- 📧 **Resend Integration** for transactional emails
-- 🛡️ **Rate Limiting** to prevent abuse
-- 🔄 **Guest Cart Merging** for seamless UX
+- **Guest cart → authenticated cart merge**: Carts are keyed by either `customerId` or `sessionId`. On login, `cart.service.ts` runs a batch merge — validates inventory for each guest item, upserts quantities for duplicates, and deletes the guest cart. All inside one Prisma transaction.
 
----
+- **Discount codes handle the real edge cases**: global usage caps, per-customer limits (checked against non-cancelled orders), date-range validity, minimum order amounts, three discount types (percentage, fixed, free shipping). Validation runs twice — once during preview, again atomically inside the checkout transaction.
 
-## 🛠️ Tech Stack
+- **Better Auth with cross-domain cookies**: Sessions use HTTP-only cookies with `sameSite: "none"` in production (for Vercel frontend ↔ Render backend), `"lax"` in development. 7-day expiry, 24-hour refresh cycle, 5-minute cookie cache.
 
-| Category | Technology |
-|----------|------------|
-| **Framework** | Express 5 |
-| **Language** | TypeScript 5 |
-| **Database** | PostgreSQL |
-| **ORM** | Prisma |
-| **Auth** | Better Auth |
-| **Validation** | Zod |
-| **Email** | Resend |
-| **Security** | express-rate-limit, helmet-ready |
+- **Rate limiting is tiered**: 300 req/15min on general API, 15 req/15min on auth endpoints, 9 req/hour on contact form.
 
 ---
 
-## 📂 Project Structure
+## Tech Stack
+
+| Component | Version / Library |
+|-----------|-------------------|
+| Framework | Express 5 (native async error handling, named splat params) |
+| Language | TypeScript 5.8 |
+| Database | PostgreSQL via Prisma 6 |
+| Auth | Better Auth 1.4 with Prisma adapter |
+| Validation | Zod 3 (middleware-level, per-route schemas) |
+| Email | Resend (order confirmations, shipping updates, contact/newsletter) |
+| Security | express-rate-limit, HTTP-only cookies, CORS whitelist |
+| Dev server | tsx watch (hot reload, no build step during dev) |
+
+---
+
+## Project Structure
 
 ```
-backend/
-├── src/
-│   ├── config/
-│   │   ├── auth.ts         # Better Auth configuration
-│   │   ├── database.ts     # Prisma client
-│   │   └── env.ts          # Environment variables
-│   │
-│   ├── routes/
-│   │   ├── products.ts     # Product CRUD & catalog
-│   │   ├── cart.ts         # Cart management
-│   │   ├── checkout.ts     # Order processing
-│   │   ├── orders.ts       # Order management
-│   │   ├── customers.ts    # Customer profiles
-│   │   ├── collections.ts  # Product collections
-│   │   ├── categories.ts   # Categories
-│   │   ├── wishlist.ts     # User wishlists
-│   │   ├── contact.ts      # Contact form
-│   │   └── newsletter.ts   # Newsletter signup
-│   │
-│   ├── services/
-│   │   ├── product.service.ts   # Product business logic
-│   │   ├── cart.service.ts      # Cart operations
-│   │   ├── order.service.ts     # Order processing
-│   │   ├── email.service.ts     # Resend email sending
-│   │   └── customer.service.ts  # Customer management
-│   │
-│   ├── middleware/
-│   │   ├── auth.ts         # Authentication middleware
-│   │   ├── requireRole.ts  # Role-based access control
-│   │   ├── validate.ts     # Zod validation middleware
-│   │   ├── rateLimit.ts    # Rate limiting
-│   │   └── errorHandler.ts # Global error handling
-│   │
-│   ├── validators/         # Zod schemas
-│   └── utils/              # Helpers
+src/
+├── config/
+│   ├── auth.ts              # Better Auth — Prisma adapter, session cookies,
+│   │                        #   cross-domain config, custom password hashing
+│   ├── database.ts          # Prisma client singleton
+│   └── env.ts               # Validated environment variables
 │
-├── prisma/
-│   ├── schema.prisma       # Database schema
-│   └── seed.ts             # Sample data seeder
+├── routes/                  # 14 route files
+│   ├── products.ts          # Catalog queries with filter/sort/pagination
+│   ├── cart.ts              # CRUD + guest session + merge endpoint
+│   ├── checkout.ts          # Discount preview, checkout, order preview
+│   ├── orders.ts            # List/detail/status update/fulfillment/analytics
+│   ├── collections.ts       # CRUD with product associations
+│   ├── categories.ts        # Hierarchical categories (self-referencing)
+│   ├── reviews.ts           # Product reviews with approval workflow
+│   ├── wishlist.ts          # Add/remove/list
+│   ├── discounts.ts         # Admin discount code management
+│   ├── addresses.ts         # Customer address book
+│   ├── customers.ts         # Customer profiles (admin view)
+│   ├── contact.ts           # Contact form → email
+│   └── newsletter.ts        # Subscription endpoint
 │
-└── index.ts                # Server entry point
+├── services/                # Business logic layer
+│   ├── order.service.ts     # 571 lines — checkout pipeline, discount logic,
+│   │                        #   revenue aggregation, fulfillment tracking
+│   ├── cart.service.ts      # Cart CRUD, guest merge, format/transform
+│   ├── product.service.ts   # Query builder for filters, featured, related products
+│   ├── email.service.ts     # HTML email templates via Resend
+│   └── auth.service.ts      # Session helpers
+│
+├── middleware/
+│   ├── auth.ts              # Token extraction, optional auth for guest endpoints
+│   ├── requireRole.ts       # RBAC — ADMIN, STAFF, CUSTOMER
+│   ├── validate.ts          # Generic Zod body/query/params validation
+│   ├── rateLimit.ts         # Tiered rate limiters
+│   └── errorHandler.ts      # Centralized error formatting with ApiError class
+│
+└── validators/              # Zod schemas per domain (checkout, products, etc.)
+
+prisma/
+├── schema.prisma            # 615 lines, 20+ models
+└── seed.ts                  # Realistic catalog: products, variants, collections, users
 ```
 
 ---
 
-## 🚀 Quick Start
+## Getting Started
 
 ```bash
-# Install dependencies
 npm install
 
-# Setup database
-npm run db:push    # Push schema
-npm run db:seed    # Seed sample data
+# Set up backend/.env (copy from .env.example)
+# Required: DATABASE_URL, BETTER_AUTH_SECRET, FRONTEND_URL
+# Optional: RESEND_API_KEY, FROM_EMAIL, CONTACT_EMAIL
 
-# Start dev server
-npm run dev
+npm run db:push       # push schema to Postgres
+npm run seed          # seed catalog + demo users
 
-# Build for production
-npm run build
-
-# Start production
-npm run start
+npm run dev           # starts on :3001 with hot reload
 ```
 
----
-
-## 🔧 Environment Variables
-
-```env
-# Required
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
-BETTER_AUTH_SECRET="32-character-random-string"
-FRONTEND_URL="http://localhost:3000"
-
-# Optional - Email (Resend)
-RESEND_API_KEY="re_xxxxxxxxxx"
-FROM_EMAIL="onboarding@resend.dev"
-CONTACT_EMAIL="your@email.com"
-
-# Development
-NODE_ENV="development"
-PORT=3001
-```
+**Production**: `npm run build` → `npm run start` (runs compiled JS from `dist/`).
 
 ---
 
-## 🔐 Authentication
+## Database Schema
 
-Powered by **Better Auth** with:
+20+ models. The interesting parts:
 
-| Feature | Implementation |
-|---------|----------------|
-| Sessions | 7-day expiry, 24h refresh |
-| Cookies | HTTP-only, secure in production |
-| Cross-Domain | `sameSite: "none"` for Vercel ↔ Render |
-| Roles | CUSTOMER, STAFF, ADMIN |
+- **Products** have variants (each with SKU, price, compare-at price, inventory quantity, weight), options (Size, Color), and images (with soft-delete support)
+- **Cart** is dual-keyed: `customerId` for authenticated users, `sessionId` for guests — with a unique constraint on each
+- **Orders** track 8 statuses (PENDING → DELIVERED/CANCELLED/REFUNDED), plus separate `financialStatus` and `fulfillmentStatus` fields
+- **Payments** store `cardLast4`, `cardBrand` (auto-detected from number), and `transactionId`
+- **DiscountCodes** support `PERCENTAGE`, `FIXED_AMOUNT`, and `FREE_SHIPPING` types with `usesPerCustomer` and `maxUses` limits
+- **Categories** are self-referencing for hierarchical browsing
+- **Metafields** on products for extensible key-value metadata
 
----
-
-## 🛡️ Rate Limiting
-
-| Endpoint | Limit |
-|----------|-------|
-| `/api/*` | 300 requests / 15 min |
-| `/api/auth/*` | 15 requests / 15 min |
-| `/api/contact` | 9 requests / hour |
+Full schema: [`prisma/schema.prisma`](prisma/schema.prisma)
 
 ---
 
-## 🌐 API Endpoints
+## API Overview
 
-### Public
+**Public**: `GET /api/products` (filters, pagination, sort), `GET /api/products/:slug`, `GET /api/collections`, `GET /api/categories`, `POST /api/contact`, `POST /api/newsletter/subscribe`
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/products` | List products with filters |
-| GET | `/api/products/:slug` | Product details |
-| GET | `/api/collections` | List collections |
-| GET | `/api/categories` | List categories |
-| POST | `/api/contact` | Contact form submission |
-| POST | `/api/newsletter/subscribe` | Newsletter signup |
+**Authenticated** (session cookie): `GET/POST/PATCH/DELETE /api/cart/*`, `POST /api/checkout`, `GET /api/orders/my-orders`, `GET/POST/DELETE /api/wishlist`, `GET/PUT /api/addresses`
 
-### Authenticated
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/cart` | Get user's cart |
-| POST | `/api/cart/add` | Add item to cart |
-| PUT | `/api/cart/update/:id` | Update cart item |
-| DELETE | `/api/cart/remove/:id` | Remove cart item |
-| POST | `/api/checkout` | Process order |
-| GET | `/api/orders/my-orders` | User's order history |
-| GET | `/api/wishlist` | Get wishlist |
-
-### Admin Only
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/orders` | All orders |
-| PATCH | `/api/orders/:id/status` | Update order status |
-| POST | `/api/orders/:id/fulfillment` | Add shipping info |
-| GET | `/api/orders/stats` | Revenue analytics |
-| GET | `/api/customers` | Customer list |
-| POST | `/api/products` | Create product |
+**Admin/Staff** (role-gated): `GET /api/orders` (all), `PATCH /api/orders/:id/status`, `POST /api/orders/:id/fulfillment`, `GET /api/orders/stats`, `GET /api/customers`, `POST/PUT/DELETE /api/products`, `POST/PUT/DELETE /api/collections`, `POST/PUT/DELETE /api/discounts`
 
 ---
 
-## 📧 Email Features
+## What I'd Do Differently
 
-Using **Resend** for transactional emails:
+- **Swap the mock payment for Stripe**. The 3-phase architecture was designed for this — `processPayment()` is already isolated in Phase 2, running outside the main database transaction.
 
-| Email | Trigger |
-|-------|---------|
-| Order Confirmation | Checkout complete |
-| Shipping Notification | Fulfillment added |
-| Contact Form | Contact submission |
-| Newsletter Welcome | Subscription |
+- **Add cursor-based pagination** for the orders list. Offset pagination works fine at low volume but degrades with thousands of orders.
+
+- **Build a proper query-builder** for `product.service.ts`. The filter construction handles category + collection + price range + tag + search + sort, but the conditional nesting gets complex — a builder pattern would clean it up.
 
 ---
 
-## 🗄️ Database Schema Highlights
+## Author
 
-```prisma
-model Product {
-  variants      ProductVariant[]
-  images        ProductImage[]
-  reviews       Review[]
-  collections   Collection[]
-  wishlistItems WishlistItem[]
-}
-
-model Order {
-  items         OrderItem[]
-  customer      Customer?
-  payments      Payment[]
-  fulfillments  Fulfillment[]
-  discountCode  DiscountCode?
-}
-
-model Cart {
-  items         CartItem[]
-  customer      Customer?  // For logged-in users
-  sessionId     String?    // For guests
-}
-```
-
-> 📖 **Full schema:** `prisma/schema.prisma`
-
----
-
-## 📜 Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start with hot reload |
-| `npm run build` | Compile TypeScript |
-| `npm run start` | Run production build |
-| `npm run db:push` | Push schema changes |
-| `npm run db:migrate` | Run migrations |
-| `npm run db:seed` | Seed sample data |
-| `npm run db:studio` | Open Prisma Studio |
-
----
-
-## 🚀 Deployment (Render)
-
-### Environment Variables:
-
-```env
-NODE_ENV=production
-DATABASE_URL=your-postgres-url
-BETTER_AUTH_SECRET=your-secret
-FRONTEND_URL=https://yourapp.vercel.app
-```
-
-### Build Settings:
-
-```
-Build Command: npm install && npm run build
-Start Command: node dist/index.js
-```
-
----
-
-<div align="center">
-
-### Built with 💛🖤
-
-*Part of the [BRUTAL E-Commerce](../README.md) project*
-
-</div>
+**Fazlul Karim** — [GitHub](https://github.com/FazlulKarimC)

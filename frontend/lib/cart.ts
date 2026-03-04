@@ -88,9 +88,10 @@ export const useCartStore = create<CartState>()(
                     }
 
                     set({ cart: response.data, isLoading: false, isOpen: true });
-                } catch (error: any) {
+                } catch (error: unknown) {
                     set({ isLoading: false });
-                    throw new Error(error.response?.data?.error || 'Failed to add item');
+                    const axiosErr = error as { response?: { data?: { error?: string } } };
+                    throw new Error(axiosErr.response?.data?.error || 'Failed to add item');
                 }
             },
 
@@ -167,6 +168,11 @@ export const useCartStore = create<CartState>()(
             },
 
             clearCart: async () => {
+                // Clear any pending update timeouts to prevent stale API requests
+                Object.keys(updateTimeouts).forEach((key) => {
+                    clearTimeout(updateTimeouts[key]);
+                    delete updateTimeouts[key];
+                });
                 try {
                     const response = await api.delete('/cart');
                     set({ cart: response.data });

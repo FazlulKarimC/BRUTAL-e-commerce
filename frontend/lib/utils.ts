@@ -7,6 +7,9 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatPrice(amount: number | string, currency = 'USD'): string {
   const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  if (!Number.isFinite(numAmount)) {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(0);
+  }
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
@@ -23,7 +26,7 @@ export function generateSessionId(): string {
 
   let sessionId = localStorage.getItem('sessionId');
   if (!sessionId) {
-    sessionId = `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    sessionId = `sess_${crypto.randomUUID()}`;
     localStorage.setItem('sessionId', sessionId);
   }
   return sessionId;

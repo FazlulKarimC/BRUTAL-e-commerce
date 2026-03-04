@@ -113,8 +113,9 @@ export default function CheckoutPage() {
         setAppliedDiscount(discountCode.trim().toUpperCase());
         setDiscountCode('');
       }
-    } catch (err: any) {
-      setDiscountError(err.response?.data?.error || 'Invalid discount code');
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { error?: string } } };
+      setDiscountError(axiosErr.response?.data?.error || 'Invalid discount code');
     } finally {
       setIsApplyingDiscount(false);
     }
@@ -205,8 +206,9 @@ export default function CheckoutPage() {
       } else {
         setError(response.data.error || 'Checkout failed');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'An error occurred during checkout');
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { error?: string } } };
+      setError(axiosErr.response?.data?.error || 'An error occurred during checkout');
     } finally {
       setIsSubmitting(false);
     }
@@ -244,6 +246,7 @@ export default function CheckoutPage() {
                       <label className="font-bold text-sm block mb-2">Email</label>
                       <Input
                         type="email"
+                        autoComplete="email"
                         {...register('email')}
                         state={errors.email ? 'error' : 'default'}
                       />
@@ -251,7 +254,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="md:col-span-2">
                       <label className="font-bold text-sm block mb-2">Phone (optional)</label>
-                      <Input type="tel" {...register('phone')} />
+                      <Input type="tel" autoComplete="tel" {...register('phone')} />
                     </div>
                   </div>
                 </CardContent>
@@ -266,34 +269,34 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="font-bold text-sm block mb-2">First Name</label>
-                      <Input {...register('firstName')} state={errors.firstName ? 'error' : 'default'} />
+                      <Input {...register('firstName')} autoComplete="given-name" state={errors.firstName ? 'error' : 'default'} />
                       {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>}
                     </div>
                     <div>
                       <label className="font-bold text-sm block mb-2">Last Name</label>
-                      <Input {...register('lastName')} state={errors.lastName ? 'error' : 'default'} />
+                      <Input {...register('lastName')} autoComplete="family-name" state={errors.lastName ? 'error' : 'default'} />
                       {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName.message}</p>}
                     </div>
                     <div className="md:col-span-2">
                       <label className="font-bold text-sm block mb-2">Address</label>
-                      <Input {...register('address')} state={errors.address ? 'error' : 'default'} />
+                      <Input {...register('address')} autoComplete="street-address" state={errors.address ? 'error' : 'default'} />
                       {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>}
                     </div>
                     <div>
                       <label className="font-bold text-sm block mb-2">City</label>
-                      <Input {...register('city')} state={errors.city ? 'error' : 'default'} />
+                      <Input {...register('city')} autoComplete="address-level2" state={errors.city ? 'error' : 'default'} />
                     </div>
                     <div>
                       <label className="font-bold text-sm block mb-2">State</label>
-                      <Input {...register('state')} state={errors.state ? 'error' : 'default'} />
+                      <Input {...register('state')} autoComplete="address-level1" state={errors.state ? 'error' : 'default'} />
                     </div>
                     <div>
                       <label className="font-bold text-sm block mb-2">Postal Code</label>
-                      <Input {...register('postalCode')} state={errors.postalCode ? 'error' : 'default'} />
+                      <Input {...register('postalCode')} autoComplete="postal-code" state={errors.postalCode ? 'error' : 'default'} />
                     </div>
                     <div>
                       <label className="font-bold text-sm block mb-2">Country</label>
-                      <Input {...register('country')} defaultValue="US" />
+                      <Input {...register('country')} autoComplete="country" defaultValue="US" />
                     </div>
                   </div>
                 </CardContent>
@@ -314,12 +317,13 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <label className="font-bold text-sm block mb-2">Cardholder Name</label>
-                      <Input {...register('cardholderName')} state={errors.cardholderName ? 'error' : 'default'} />
+                      <Input {...register('cardholderName')} autoComplete="cc-name" state={errors.cardholderName ? 'error' : 'default'} />
                     </div>
                     <div className="md:col-span-2">
                       <label className="font-bold text-sm block mb-2">Card Number</label>
                       <Input
                         {...register('cardNumber')}
+                        autoComplete="cc-number"
                         maxLength={16}
                         placeholder="1234567890123456"
                         state={errors.cardNumber ? 'error' : 'default'}
@@ -329,14 +333,14 @@ export default function CheckoutPage() {
                     <div>
                       <label className="font-bold text-sm block mb-2">Expiry (MM/YY)</label>
                       <div className="flex gap-2">
-                        <Input {...register('expiryMonth')} maxLength={2} placeholder="MM" inputSize="sm" />
+                        <Input {...register('expiryMonth')} autoComplete="cc-exp-month" maxLength={2} placeholder="MM" inputSize="sm" />
                         <span className="self-center">/</span>
-                        <Input {...register('expiryYear')} maxLength={2} placeholder="YY" inputSize="sm" />
+                        <Input {...register('expiryYear')} autoComplete="cc-exp-year" maxLength={2} placeholder="YY" inputSize="sm" />
                       </div>
                     </div>
                     <div>
                       <label className="font-bold text-sm block mb-2">CVV</label>
-                      <Input {...register('cvv')} maxLength={4} placeholder="123" inputSize="sm" className="w-24" />
+                      <Input {...register('cvv')} autoComplete="cc-csc" maxLength={4} placeholder="123" inputSize="sm" className="w-24" />
                     </div>
                   </div>
                 </CardContent>

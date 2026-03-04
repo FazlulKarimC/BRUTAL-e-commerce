@@ -53,9 +53,6 @@ export async function authenticate(
 /**
  * Optional authentication - sets user if token present, but doesn't require it
  */
-/**
- * Optional authentication - sets user if token present, but doesn't require it
- */
 export async function optionalAuth(
     req: Request,
     res: Response,

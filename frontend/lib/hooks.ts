@@ -282,7 +282,7 @@ export function useCheckWishlist(productId: string) {
 // ========================
 
 interface CheckoutPreview {
-    items: any[];
+    items: Array<{ productTitle: string; quantity: number; price: number }>;
     itemCount: number;
     subtotal: number;
     discount: number;
@@ -301,6 +301,10 @@ export function useCheckoutPreview(discountCode?: string) {
             const response = await api.post('/checkout/preview', { discountCode });
             return response.data;
         },
+        // POST inside useQuery — disable automatic refetching to prevent unintended mutations
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        refetchOnReconnect: false,
     });
 }
 

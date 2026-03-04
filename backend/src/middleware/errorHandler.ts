@@ -76,20 +76,6 @@ export function errorHandler(
         return;
     }
 
-    // Handle JWT errors
-    if (error.name === 'JsonWebTokenError') {
-        res.status(401).json({
-            error: 'Invalid token',
-        });
-        return;
-    }
-
-    if (error.name === 'TokenExpiredError') {
-        res.status(401).json({
-            error: 'Token expired',
-        });
-        return;
-    }
 
     // Default error response
     res.status(500).json({

@@ -3,7 +3,7 @@ import { prisma } from '../config/database';
 import { authenticate } from '../middleware/auth';
 import { requireStaff } from '../middleware/requireRole';
 import { validateParams, validateBody } from '../middleware/validate';
-import { idParamSchema, addressSchema, paginationSchema, updateCustomerSchema } from '../validators/common.validator';
+import { idParamSchema, paginationSchema, updateCustomerSchema } from '../validators/common.validator';
 
 const router = Router();
 
@@ -55,140 +55,9 @@ router.get(
   }
 );
 
-// ==================== CUSTOMER SELF-SERVICE ROUTES ====================
-// NOTE: These /me/* routes MUST be defined BEFORE /:id routes to prevent
-// Express from matching 'me' as a dynamic :id parameter
-
-// Get my addresses
-router.get(
-  '/me/addresses',
-  authenticate,
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const customer = await prisma.customer.findUnique({
-        where: { userId: req.user!.userId },
-        include: { addresses: { orderBy: { isDefault: 'desc' } } },
-      });
-
-      res.json(customer?.addresses || []);
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-// Add address
-router.post(
-  '/me/addresses',
-  authenticate,
-  validateBody(addressSchema),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      let customer = await prisma.customer.findUnique({
-        where: { userId: req.user!.userId },
-      });
-
-      if (!customer) {
-        customer = await prisma.customer.create({
-          data: { userId: req.user!.userId },
-        });
-      }
-
-      // If setting as default, unset other defaults
-      if (req.body.isDefault) {
-        await prisma.address.updateMany({
-          where: { customerId: customer.id },
-          data: { isDefault: false },
-        });
-      }
-
-      const address = await prisma.address.create({
-        data: {
-          customerId: customer.id,
-          ...req.body,
-        },
-      });
-
-      res.status(201).json(address);
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-// Update address
-router.patch(
-  '/me/addresses/:id',
-  authenticate,
-  validateParams(idParamSchema),
-  validateBody(addressSchema.partial()),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const customer = await prisma.customer.findUnique({
-        where: { userId: req.user!.userId },
-      });
-
-      if (!customer) {
-        res.status(404).json({ error: 'Address not found' });
-        return;
-      }
-
-      // Verify address belongs to customer
-      const address = await prisma.address.findFirst({
-        where: { id: req.params.id, customerId: customer.id },
-      });
-
-      if (!address) {
-        res.status(404).json({ error: 'Address not found' });
-        return;
-      }
-
-      // If setting as default, unset other defaults
-      if (req.body.isDefault) {
-        await prisma.address.updateMany({
-          where: { customerId: customer.id, id: { not: req.params.id } },
-          data: { isDefault: false },
-        });
-      }
-
-      const updated = await prisma.address.update({
-        where: { id: req.params.id },
-        data: req.body,
-      });
-
-      res.json(updated);
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-// Delete address
-router.delete(
-  '/me/addresses/:id',
-  authenticate,
-  validateParams(idParamSchema),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const customer = await prisma.customer.findUnique({
-        where: { userId: req.user!.userId },
-      });
-
-      if (!customer) {
-        res.status(404).json({ error: 'Address not found' });
-        return;
-      }
-
-      await prisma.address.deleteMany({
-        where: { id: req.params.id, customerId: customer.id },
-      });
-
-      res.json({ message: 'Address deleted' });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
+// ==================== CUSTOMER ADDRESS ROUTES ====================
+// Address management (CRUD) is handled by the dedicated addresses router.
+// See: routes/addresses.ts (mounted at /api/addresses)
 
 // ==================== ADMIN ROUTES WITH DYNAMIC :id ====================
 
@@ -255,9 +124,9 @@ router.patch(
       });
 
       res.json(customer);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle Prisma P2025 "Record not found" error
-      if (error.code === 'P2025') {
+      if (error instanceof Error && 'code' in error && (error as { code: string }).code === 'P2025') {
         res.status(404).json({ error: 'Customer not found' });
         return;
       }

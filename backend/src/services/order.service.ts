@@ -244,7 +244,7 @@ export class OrderService {
             orderNumber: fullOrder.orderNumber,
             email: input.email,
             customerName: input.shippingAddress.firstName,
-            items: fullOrder.items.map((item: any) => ({
+            items: fullOrder.items.map((item: { productTitle: string; variantTitle: string | null; quantity: number; price: { toString(): string } }) => ({
                 productTitle: item.productTitle,
                 variantTitle: item.variantTitle,
                 quantity: item.quantity,
@@ -374,7 +374,7 @@ export class OrderService {
     }) {
         const { page = 1, limit = 20, status, customerId, startDate, endDate } = query;
 
-        const where: any = {
+        const where: Record<string, unknown> = {
             ...(status && { status }),
             ...(customerId && { customerId }),
         };

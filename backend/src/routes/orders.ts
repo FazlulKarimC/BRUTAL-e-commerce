@@ -72,6 +72,30 @@ router.get(
   }
 );
 
+// Get dashboard stats (admin/staff) - MUST be before /:id route
+router.get(
+  '/stats',
+  authenticate,
+  requireStaff,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // Use Prisma aggregate for efficient server-side calculation
+      const [revenueResult, orderCount] = await Promise.all([
+        orderService.getRevenueStats(),
+        orderService.getOrderCount(),
+      ]);
+
+      res.json({
+        totalRevenue: revenueResult.totalRevenue,
+        totalOrders: orderCount,
+        currency: 'USD',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 // Get analytics data (admin/staff) - MUST be before /:id route
 router.get(
   '/analytics/dashboard',
@@ -194,30 +218,6 @@ router.get(
 );
 
 // ==================== ADMIN ROUTES ====================
-
-// Get dashboard stats (admin/staff) - server-side aggregation
-router.get(
-  '/stats',
-  authenticate,
-  requireStaff,
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      // Use Prisma aggregate for efficient server-side calculation
-      const [revenueResult, orderCount] = await Promise.all([
-        orderService.getRevenueStats(),
-        orderService.getOrderCount(),
-      ]);
-
-      res.json({
-        totalRevenue: revenueResult.totalRevenue,
-        totalOrders: orderCount,
-        currency: 'USD',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
 
 // List all orders (admin/staff)
 router.get(

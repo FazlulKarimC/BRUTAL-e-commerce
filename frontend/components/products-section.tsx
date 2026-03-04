@@ -128,7 +128,7 @@ export function ProductsSection() {
                         aria-label="Add to cart"
                         disabled={isAdding || !variant}
                         onClick={(e) => handleAddToCart(e, product)}
-                        className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity border-4 border-black shadow-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none rounded-lg"
+                        className="absolute bottom-3 right-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity border-4 border-black shadow-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none rounded-lg"
                       >
                         {isAdding ? (
                           <Loader2 className="h-4 w-4 animate-spin" />

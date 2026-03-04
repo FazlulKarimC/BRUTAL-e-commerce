@@ -99,7 +99,8 @@ router.post(
                     error.message.includes('Card declined') ||
                     error.message.includes('discount')
                 ) {
-                    throw new ApiError(400, error.message);
+                    next(new ApiError(400, error.message));
+                    return;
                 }
             }
             next(error);

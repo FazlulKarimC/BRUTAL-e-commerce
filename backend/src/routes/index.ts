@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import authRouter from './auth';
 import productsRouter from './products';
 import collectionsRouter from './collections';
 import categoriesRouter from './categories';
@@ -17,7 +16,6 @@ import addressesRouter from './addresses';
 const router = Router();
 
 // API Routes
-// router.use('/auth', authRouter); // Legacy auth routes replaced by Better Auth
 router.use('/products', productsRouter);
 router.use('/collections', collectionsRouter);
 router.use('/categories', categoriesRouter);
